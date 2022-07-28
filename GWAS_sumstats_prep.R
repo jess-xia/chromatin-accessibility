@@ -3,6 +3,7 @@ library(dplyr)
 library(h2o)
 library(readxl)
 library(stringr)
+library(janitor)
 
 #GWAS summary statistics preparation, standardizes column names for each GWAS, ensures RSID is matched to chromosomal location
 #NOTE: Different GWAS papers provides the raw sumstat file in different formats
@@ -11,7 +12,7 @@ standard_colnames=c("SNP","CHR", "BP", "A1","A2","P") #Standardized column names
 
 
 #Schizophrenia (original paper:'https://doi.org/10.1038/s41586-022-04434-5')
-SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/SZ_gwas_sum.xlsx", sheet=2) %>%
+SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/SZ_gwas_sum.xlsx", sheet=2) %>%
   filter(., `P-comb`<5*10^-8) %>% #P-comb = p-value of combined discover-replication meta analysis. Filter out SNPs with P-value less than 5*10^-8, yields 342 SNPs
   mutate(A1=str_match(A1A2, "([A-Z])/([A-Z])")[,2],
          A2=str_match(A1A2, "([A-Z])/([A-Z])")[,3]) %>%
@@ -22,7 +23,7 @@ saveRDS(SZ, file = "SZ_gwas_final_list.rds") #Save as a single R object
 
 
 #Bipolar disorder (original paper:'https://doi.org/10.1038/s41588-021-00857-4')
-BD <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/BD_gwas_sum.xlsx", sheet=3) %>% #p-values are already filtered for P<5×10^−8
+BD <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/BD_gwas_sum.xlsx", sheet=3) %>% #p-values are already filtered for P<5×10^−8
   row_to_names(row_number = 1) %>%
   mutate(A1=str_match(`A1/A2`, "([A-Z])/([A-Z])")[,2],
          A2=str_match(`A1/A2`, "([A-Z])/([A-Z])")[,3]) %>%
@@ -36,9 +37,10 @@ saveRDS(BD, file = "BD_gwas_final_list.rds")
 
 
 #Depression (original paper:'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6522363/')
-MDD <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/MDD_gwas_sum.xlsx") %>%
+MDD <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/MDD_gwas_sum.xlsx") %>%
   subset(select=c(2,1,3,4,5,31)) %>%
-  row_to_names(row_number = 2)
+  row_to_names(row_number = 2) %>%
+  head(-1) #Last row contains description
 
 colnames(MDD) <- standard_colnames
 MDD$A1 <- toupper(MDD$A1) #Convert A1 and A2 to uppercase like the other dataframes
