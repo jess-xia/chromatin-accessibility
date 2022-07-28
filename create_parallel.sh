@@ -3,7 +3,7 @@
 trait=$1
 folder_name=$2
 
-for i in {1..342}
+for i in {1..64}
 do 
   echo "#!/bin/bash" > "/nethome/kcni/jxia/chromatin-accessibility/${folder_name}/${trait}_${i}.sh"
   echo "Rscript /nethome/kcni/jxia/chromatin-accessibility/parallel.R ${i}" >> "/nethome/kcni/jxia/chromatin-accessibility/${folder_name}/${trait}_${i}.sh"
