@@ -20,14 +20,14 @@ DAR <- read_xlsx("~/DAR.xlsx") %>%
          end=as.numeric(str_match(Location, ":([0-9]+)-([0-9]+)")[,3]),
          .after=Location)
 DAR_grouped <- split(DAR, f=DAR$Subclass)
-
+saveRDS(DAR_grouped, file="~/chromatin-accessibility/DAR_grouped.rds")
 
 #Loads scz gwas sumstats. SNP=RSid, A1=effect allele, A2=other allele, beta=effect estimate, P=p-value
 SZ <- readRDS("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/SZ_gwas_final_list.rds") 
 BD <- readRDS("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/BD_gwas_final_list.rds")
 
 #For each GWAS SNP, loop through the differential accessible regions by cell subtype. If there is an overlap, the log fold change is store as extra columns appended to the original gwas sumstat file
-for (i in 17:nrow(BD)){ #Loops through each SNP
+for (i in 52:nrow(BD)){ #Loops through each SNP
   chrom <- BD[[i, "CHR"]] #Stores the location of each SNP 
   loc <- BD[[i, "BP"]]
   for (j in 1:length(DAR_grouped)){ #Loops through each cell subtype
@@ -41,8 +41,8 @@ for (i in 17:nrow(BD)){ #Loops through each SNP
     }
   }
 }
+saveRDS(BD, file = "BD_intersected.rds")
 
-#BD <- subset(BD, select = c("SNP","CHR", "BP", "A1","A2","P"))
 
 
 '''
@@ -74,4 +74,19 @@ intersected_BD <- intersection(BD)
 #scz_withloc <- head(scz_withloc, -1)
 #Delete the SNP column in the DAR data table
 #DAR <- subset(DAR, select=-SNP)
-  
+
+
+Bash
+Rscript xx.R arg1
+args=commandArgs(trailingOnly=True) #Parameter that goes in the R script
+
+
+datadir=$1 #Parameter that goes in the shell script
+
+
+file_list <- list.files("/external/rprshnas01/kcni/jxia/chromatin-accessibility/SZ_parallel/parallel_results")
+df_list <- c()
+for (file in file_list){
+  df_list <- df_list + as.data.frame(readRDS(file))
+}
+bound <- bind_cols(df_list)

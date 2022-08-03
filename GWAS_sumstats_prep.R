@@ -4,22 +4,35 @@ library(h2o)
 library(readxl)
 library(stringr)
 library(janitor)
+library(rtracklayer)
 
 #GWAS summary statistics preparation, standardizes column names for each GWAS, ensures RSID is matched to chromosomal location
 #NOTE: Different GWAS papers provides the raw sumstat file in different formats
-setwd('/external/rprshnas01/kcni/jxia/chromatin-accessibiliy') #Original files are stored here
+#setwd('/external/rprshnas01/kcni/jxia/chromatin-accessibiliy') #Original files are stored here
 standard_colnames=c("SNP","CHR", "BP", "A1","A2","P") #Standardized column names to be used for each GWAS
 
 
 #Schizophrenia (original paper:'https://doi.org/10.1038/s41586-022-04434-5')
-SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/SZ_gwas_sum.xlsx", sheet=2) %>%
+SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/GWAS_sumstats/SZ_gwas_sum.xlsx", sheet=2) %>%
+  #as.data.frame() %>%
   filter(., `P-comb`<5*10^-8) %>% #P-comb = p-value of combined discover-replication meta analysis. Filter out SNPs with P-value less than 5*10^-8, yields 342 SNPs
   mutate(A1=str_match(A1A2, "([A-Z])/([A-Z])")[,2],
-         A2=str_match(A1A2, "([A-Z])/([A-Z])")[,3]) %>%
-  select(., c('SNP','CHR', 'BP', 'A1', 'A2','P-comb')) #Columns kept in final dataframe
+         A2=str_match(A1A2, "([A-Z])/([A-Z])")[,3], 
+         liftover=paste("chr", as.character(CHR), ":", as.character(BP), "-", as.character(BP), sep="")) #Formated coordinates for liftover
 
-colnames(SZ) <- standard_colnames #To standardize the names of columns
-saveRDS(SZ, file = "SZ_gwas_final_list.rds") #Save as a single R object
+#Export list of coordinates in the correct format for http://genome.ucsc.edu/cgi-bin/hgLiftOver
+fwrite(as.list(SZ$liftover), file="GWAS_sumstats/SZ_gwas_hg19_coordinates.txt", sep="\n")
+#New corresponding coordinates
+new_coor <- fread("~/chromatin-accessibility/GWAS_sumstats/hglft_genome_1df00_932fa0.bed", header=FALSE)
+#Remove SNPs where conversion failed, code varies based on failed conversions
+hg38_SZ <- filter(SZ, CHR!=23) %>%
+  cbind(., new_coor) %>%
+  mutate(CHR=str_match(V1, "chr([A-Z0-9]{1,2}):")[,2], 
+         BP=as.numeric(str_match(V1, ":([0-9]+)-([0-9]+)")[,2])) %>% #Extract chromosomal location from new coordinates
+  subset(select=c('SNP','CHR', 'BP', 'A1', 'A2','P-comb')) #Columns kept in final dataframe
+
+colnames(hg38_SZ) <- standard_colnames #To standardize the names of columns
+saveRDS(hg38_SZ, file = "GWAS_sumstats/SZ_gwas_final_list.rds") #Save as a single R object
 
 
 #Bipolar disorder (original paper:'https://doi.org/10.1038/s41588-021-00857-4')

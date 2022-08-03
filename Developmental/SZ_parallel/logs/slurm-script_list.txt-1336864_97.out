@@ -1,0 +1,6 @@
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	Error in gzfile(file, "rb") : cannot open the connection
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	Calls: readRDS -> gzfile
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	In addition: Warning message:
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	In gzfile(file, "rb") :
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	  cannot open compressed file '/external/rprshnas01/kcni/jxia/chromatin-accessibility/SZ_gwas_final_list.rds', probable reason 'No such file or directory'
+/nethome/kcni/jxia/chromatin-accessibility/Developmental/SZ_parallel/SZ_97.sh	Execution halted
