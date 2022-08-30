@@ -1,7 +1,7 @@
 library(biomaRt)
 library(readxl)
 
-SZ_intersected_hg38 <- readRDS("~/chromatin-accessibility/Adult/SZ_intersected_hg38.rds") %>%
+SZ_intersected_hg38 <- readRDS("~/chromatin-accessibility/Adult/SZ_intersected_hg38_with_.rds") %>%
   filter(SNP!="fake_adult")
 rsids <- unique(SZ_intersected_hg38$SNP)
 
@@ -16,7 +16,7 @@ finemapped_SZ <- read_excel("~/chromatin-accessibility/GWAS_sumstats/SZ_finemapp
 
 #Match associated gene and finemapped results to each rsid
 joined <- full_join(SZ_intersected_hg38, finemapped_SZ, by = c("SNP" = "rsid")) %>%
-  subset(., select=c("SNP","CHR", "BP", "A1","A2","P", "cell_type", "accessibility", "index_snp", "finemap_posterior_probability", "gene_symbol", "ensembl_gene_classification", "impact"))
+  subset(., select=c("SNP","CHR", "BP", "A1","A2","P", "cell_type", "accessibility", "index_snp", "finemap_posterior_probability", "gene_symbol", "gene_ensembl", "ensembl_gene_classification", "impact"))
 
 
 #Check if SNP hits are actually in accessible regions
@@ -33,16 +33,33 @@ DAR <- read_excel("~/chromatin-accessibility/DAR.xlsx") %>%
   filter(chr==snp_chr,  start < snp_pos, end > snp_pos)
 
 
-
-
-
-
-
+#Find genes not retrieved from finemapped data
 #listMarts()
 ensembl_snp <- useMart("ENSEMBL_MART_SNP", dataset="hsapiens_snp")
 #listDatasets(ensembl107)
 #View(listAttributes(ensembl_snp))
-getBM(attributes=c("associated_gene", "ensembl_gene_name", 'refsnp_id'), 
+matched <- getBM(attributes=c("associated_gene", "ensembl_gene_name", 'refsnp_id'), 
       filters = 'snp_filter', 
-      values = rsid,
-      mart=ensembl_snp)
+      values = rsids,
+      mart=ensembl_snp) %>%
+  subset(select = c("ensembl_gene_name",  "refsnp_id"))
+
+joined <- left_join(joined, matched, by=c("SNP"="refsnp_id"))
+
+
+#Paper identified 342 linkage-disequilibrium-independent significant SNPs located in 287 loci. Match SNP to loci based on provided table
+SZ_342SNP_287loci <- read_excel("~/chromatin-accessibility/GWAS_sumstats/SZ_342SNP_287loci.xls")
+
+for (i in 1:nrow(SZ_intersected_hg38)){
+  for (j in 1:nrow(SZ_342SNP_287loci)){
+    if(grepl(SZ_intersected_hg38[[i, "SNP"]], SZ_342SNP_287loci[[j, "indices"]], fixed=TRUE)){
+      SZ_intersected_hg38[[i, "genes_all"]] <- SZ_342SNP_287loci[[j, "genes_all"]]
+      next
+    }
+  }
+}
+genes_all <- SZ_intersected_hg38$genes_all
+
+genes_all <- unique(unlist(strsplit(genes_all,",", fixed=TRUE)))
+
+

@@ -12,6 +12,42 @@ library(rtracklayer)
 standard_colnames=c("SNP","CHR", "BP", "A1","A2","P") #Standardized column names to be used for each GWAS
 
 
+
+
+#Schizophrenia (original paper:'https://doi.org/10.1038/s41586-022-04434-5')
+SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/GWAS_sumstats/SZ_finemapped.xlsx", sheet=2, guess_max = 1048576) %>%
+  rename(CHR=chromosome, 
+         BP=position, 
+         A1=GWAS_effect_allele,
+         A2=other_allele, 
+         SNP=rsid, 
+         P=pval) %>%  
+  mutate(liftover=paste("chr", as.character(CHR), ":", as.character(BP), "-", as.character(BP), sep="")) #Formated coordinates for liftover
+
+#Export list of coordinates in the correct format for http://genome.ucsc.edu/cgi-bin/hgLiftOver
+fwrite(as.list(SZ$liftover), file="GWAS_sumstats/SZ_finemapped_gwas_hg19_coordinates.txt", sep="\n")
+#New corresponding coordinates
+new_coor <- fread("~/chromatin-accessibility/GWAS_sumstats/SZ_finemapped_hg38_coordinates.bed", header=FALSE)
+#Remove SNPs where conversion failed, code varies based on failed conversions
+failed_coor <- c("chr1:150007105-150007105", "chr1:150147150-150147150", "chr3:16862873-16862873", "chr6:165183911-165183911", "chr6:165183961-165183961", "chr6:165209316-165209316")
+hg38_SZ <- filter(SZ, !liftover %in% failed_coor) %>%
+  cbind(., new_coor) %>%
+  mutate(CHR=str_match(V1, "chr([A-Z0-9]{1,2}):")[,2], 
+         BP=as.numeric(str_match(V1, ":([0-9]+)-([0-9]+)")[,2])) 
+
+saveRDS(hg38_SZ, file = "GWAS_sumstats/SZ_gwas_finemapped_list.rds")
+
+
+
+
+
+
+
+
+
+if(FALSE){
+#Index SNPs only
+
 #Schizophrenia (original paper:'https://doi.org/10.1038/s41586-022-04434-5')
 SZ <- read_xlsx("/external/rprshnas01/kcni/jxia/chromatin-accessibility/GWAS_sumstats/SZ_gwas_sum.xlsx", sheet=2) %>%
   #as.data.frame() %>%
@@ -33,6 +69,12 @@ hg38_SZ <- filter(SZ, CHR!=23) %>%
 
 colnames(hg38_SZ) <- standard_colnames #To standardize the names of columns
 saveRDS(hg38_SZ, file = "GWAS_sumstats/SZ_gwas_final_list.rds") #Save as a single R object
+}
+
+
+
+
+
 
 
 #Bipolar disorder (original paper:'https://doi.org/10.1038/s41588-021-00857-4')

@@ -1,0 +1,5 @@
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20216.sh	Warning messages:
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20216.sh	1: In `[<-.data.frame`(`*tmp*`, nrow(df) + 1, , value = list(index_snp = "rs1858999",  :
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20216.sh	  provided 46 variables to replace 45 variables
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20216.sh	2: In `[<-.data.frame`(`*tmp*`, nrow(df) + 1, , value = list(index_snp = "rs1858999",  :
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20216.sh	  provided 46 variables to replace 45 variables

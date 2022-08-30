@@ -19,8 +19,10 @@ DAR <- read_xlsx("~/DAR.xlsx") %>%
          start=as.numeric(str_match(Location, ":([0-9]+)-([0-9]+)")[,2]),
          end=as.numeric(str_match(Location, ":([0-9]+)-([0-9]+)")[,3]),
          .after=Location)
+
+
 DAR_grouped <- split(DAR, f=DAR$Subclass)
-saveRDS(DAR_grouped, file="~/chromatin-accessibility/DAR_grouped.rds")
+saveRDS(DAR_grouped, file="~/chromatin-accessibility/Adult/DAR_grouped.rds")
 
 #Loads scz gwas sumstats. SNP=RSid, A1=effect allele, A2=other allele, beta=effect estimate, P=p-value
 SZ <- readRDS("/external/rprshnas01/kcni/jxia/chromatin-accessibiliy/SZ_gwas_final_list.rds") 

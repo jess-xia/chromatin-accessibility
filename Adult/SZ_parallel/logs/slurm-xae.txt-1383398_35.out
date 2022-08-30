@@ -1,0 +1,3 @@
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20151.sh	Error in df[nrow(df) + 1, ] <- row : 
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20151.sh	  object of type 'closure' is not subsettable
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20151.sh	Execution halted

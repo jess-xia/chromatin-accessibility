@@ -1,0 +1,3 @@
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20761.sh	Error in if (DAR_grouped[[j]][[k, "chr"]] == chrom & DAR_grouped[[j]][[k,  : 
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20761.sh	  missing value where TRUE/FALSE needed
+/nethome/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/SZ_20761.sh	Execution halted

@@ -19,8 +19,8 @@ write.csv(combined_df, "~/chromatin-accessibility/Developmental/SZ_intersected.c
 }
 
 
-
-# For Adult data
+if(FALSE){
+# For Adult data, for index snps
 file_list <- list.files("/external/rprshnas01/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/parallel_results")
 combined <- as.data.frame(readRDS(paste("/external/rprshnas01/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/parallel_results/", file_list[1], sep="")))
 
@@ -34,5 +34,42 @@ narrowed_down <- combined %>%
 
 saveRDS(narrowed_down, file="~/chromatin-accessibility/Adult/SZ_intersected_hg38.rds")
   
-write.csv(narrowed_down, "~/Adult/SZ_intersected_hg38.csv")
-  
+write.csv(narrowed_down, "~/chromatin-accessibility/Adult/SZ_intersected_hg38_noclosestgene.csv")
+}
+
+
+file_list <- list.files("/external/rprshnas01/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/parallel_results", pattern = "\\.rds$")
+combined <- as.data.frame(readRDS(paste("/external/rprshnas01/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/parallel_results/", file_list[1], sep="")))
+
+for (i in 2:length(file_list)){
+  combined <- rbind(combined, as.data.frame(readRDS(paste("/external/rprshnas01/kcni/jxia/chromatin-accessibility/Adult/SZ_parallel/parallel_results/", file_list[i], sep=""))))
+}
+
+narrowed_down <- combined %>% 
+  pivot_longer(c(Astro, Endo:VLMC),names_to = "differentially_accessible_cell_type", values_to = "accessibility_log_fold_change") %>%
+  filter(accessibility_log_fold_change > 0) %>%
+  mutate(finemap_posterior_probability = as.numeric(as.character(finemap_posterior_probability)),
+         is_index_snp = if_else(index_snp==SNP, TRUE, FALSE)) 
+
+
+
+
+saveRDS(narrowed_down, file="~/chromatin-accessibility/Adult/SZ_finemapped_intersected_hg38.rds")
+
+write.csv(narrowed_down, "~/chromatin-accessibility/Adult/SZ_intersected_hg38_finemapped.csv")
+
+for_shreejoy <- narrowed_down %>%
+  subset(select = c("SNP", "is_index_snp", "index_snp", "P","finemap_posterior_probability", "differentially_accessible_cell_type", "accessible_region", "accessibility_log_fold_change", "gene_symbol", "ensembl_gene_classification", "impact")) %>%
+  arrange(desc(finemap_posterior_probability))
+write.csv(for_shreejoy, "~/chromatin-accessibility/Adult/SZ_intersection_summary.csv")
+
+
+
+narrowed_down %>% mutate(finemap_posterior_probability = 
+                           as.numeric(as.character(finemap_posterior_probability))) %>%
+  ggplot(aes(x=finemap_posterior_probability)) + geom_histogram() + geom_vline(xintercept = 0.1)
+
+narrowed_down %>% mutate(finemap_posterior_probability = 
+                           as.numeric(as.character(finemap_posterior_probability))) %>% 
+  filter(finemap_posterior_probability > 0.1) %>% arrange(-finemap_posterior_probability) %>%
+  dplyr::select(index_snp, finemap_posterior_probability, gene_symbol, cell_type, everything())
